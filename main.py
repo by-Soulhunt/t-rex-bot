@@ -24,11 +24,10 @@ class TrexBot:
         :return: None
         """
         while True:
+            # Change speed game regarding time
             self.change_game_speed()
             # Take screen and load pixels
             self.screen = self.fast_screenshot()
-            # self.screen.save("test.png") # TEST
-            # break # TEST
 
             # Check normal/night game mode
             tmp_pixels = self.screen.load()
@@ -37,8 +36,6 @@ class TrexBot:
                 self.night_mode = True
             else:
                 self.night_mode = False
-            print(f"Night mode: {self.night_mode}") # TEST
-
 
             self.bw_screen = self.img_to_bw(self.screen, self.night_mode)
             self.pixels = self.bw_screen.load()
@@ -56,11 +53,9 @@ class TrexBot:
                     self.color = self.pixels[w_pixel, h_pixel]
                     # Check cactus and bot bird zone
                     if self.color == 0 and 145 < h_pixel < 210:
-                        print(f"145-200 zone: {h_pixel}") # TEST
                         self.cactus_pixel_bot += 1
                     # Check middle bird zone
                     elif self.color == 0 and 100 < h_pixel < 144:
-                        print(f"100-144 zone: {h_pixel}")  # TEST
                         self.fly_pixel_middle += 1
                     else: # If white pixel found - refresh counts
                         self.cactus_pixel_bot = 0
@@ -73,6 +68,7 @@ class TrexBot:
                 # Break from outer loop
                 if should_jump:
                     break
+
 
     @staticmethod
     def img_to_bw(screen, mode):
@@ -92,11 +88,16 @@ class TrexBot:
 
 
     def fast_screenshot(self):
+        """
+        Process screen image
+        :return: img PIL
+        """
         with mss.mss() as sct:
             monitor = {"top": 600, "left": self.left_screen_distance, "width": self.screen_width, "height": 270}
             sct_img = sct.grab(monitor)
             img = Image.frombytes('RGB', sct_img.size, sct_img.rgb)
             return img
+
 
     def change_game_speed(self):
         """
@@ -106,27 +107,20 @@ class TrexBot:
         game_time = time.time() - self.start_time
         if game_time < 10:
             self.left_screen_distance = 135
-            print("🔵 Speed 1") # TEST
-            print(f"Speed distance {self.left_screen_distance}") # TEST
+
         elif game_time < 20:
             self.left_screen_distance = 200
-            print("🔵 Speed 1") # TEST
-            print(f"Speed distance {self.left_screen_distance}")  # TEST
+
         elif game_time < 35:
             self.left_screen_distance = 250
-            print("🔵 Speed 1") # TEST
-            print(f"Speed distance {self.left_screen_distance}")  # TEST
+
         elif game_time < 60:
             self.game_speed = -2
             self.left_screen_distance = 300
-            print("🔴 Speed 2") # TEST
-            print(f"Speed distance {self.left_screen_distance}")  # TEST
 
         else:
             self.game_speed = -3
             self.left_screen_distance = 400
-            print("🔴 Speed 3") # TEST
-
 
 
 if __name__ == "__main__":
