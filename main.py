@@ -1,6 +1,7 @@
 from PIL import Image
 import pyautogui
 import mss
+import time
 
 class TrexBot:
     def __init__(self):
@@ -11,6 +12,10 @@ class TrexBot:
         self.screen = None
         self.fly_pixel_middle = 0
         self.cactus_pixel_bot = 0
+        self.left_screen_distance = 135
+        self.screen_width = 200
+        self.game_speed = -1
+        self.start_time = time.time()
 
 
     def run(self):
@@ -19,6 +24,7 @@ class TrexBot:
         :return: None
         """
         while True:
+            self.change_game_speed()
             # Take screen and load pixels
             self.screen = self.fast_screenshot()
             # self.screen.save("test.png") # TEST
@@ -26,11 +32,13 @@ class TrexBot:
 
             # Check normal/night game mode
             tmp_pixels = self.screen.load()
-            game_mode_pixel_check = tmp_pixels[299, 269]
+            game_mode_pixel_check = tmp_pixels[199, 269]
             if game_mode_pixel_check[0] < 255:
                 self.night_mode = True
             else:
                 self.night_mode = False
+            print(f"Night mode: {self.night_mode}") # TEST
+
 
             self.bw_screen = self.img_to_bw(self.screen, self.night_mode)
             self.pixels = self.bw_screen.load()
@@ -43,14 +51,16 @@ class TrexBot:
             should_jump = False
 
             # Analyze screen from right/bot to left/top
-            for h_pixel in range(self.bw_screen.height - 1, -1, -2):
-                for w_pixel in range(self.bw_screen.width - 1, -1, -2):
+            for h_pixel in range(self.bw_screen.height - 1, -1, self.game_speed):
+                for w_pixel in range(self.bw_screen.width - 1, -1, self.game_speed):
                     self.color = self.pixels[w_pixel, h_pixel]
                     # Check cactus and bot bird zone
-                    if self.color == 0 and 145 < h_pixel < 200:
+                    if self.color == 0 and 145 < h_pixel < 210:
+                        print(f"145-200 zone: {h_pixel}") # TEST
                         self.cactus_pixel_bot += 1
                     # Check middle bird zone
                     elif self.color == 0 and 100 < h_pixel < 144:
+                        print(f"100-144 zone: {h_pixel}")  # TEST
                         self.fly_pixel_middle += 1
                     else: # If white pixel found - refresh counts
                         self.cactus_pixel_bot = 0
@@ -80,13 +90,43 @@ class TrexBot:
 
         return bw_screen
 
-    @staticmethod
-    def fast_screenshot():
+
+    def fast_screenshot(self):
         with mss.mss() as sct:
-            monitor = {"top": 600, "left": 135, "width": 300, "height": 270}
+            monitor = {"top": 600, "left": self.left_screen_distance, "width": self.screen_width, "height": 270}
             sct_img = sct.grab(monitor)
             img = Image.frombytes('RGB', sct_img.size, sct_img.rgb)
             return img
+
+    def change_game_speed(self):
+        """
+        Compare start game time and current. Change analyse pixels regarding game speed.
+        :return: Value to use in range like step.
+        """
+        game_time = time.time() - self.start_time
+        if game_time < 10:
+            self.left_screen_distance = 135
+            print("🔵 Speed 1") # TEST
+            print(f"Speed distance {self.left_screen_distance}") # TEST
+        elif game_time < 20:
+            self.left_screen_distance = 200
+            print("🔵 Speed 1") # TEST
+            print(f"Speed distance {self.left_screen_distance}")  # TEST
+        elif game_time < 35:
+            self.left_screen_distance = 250
+            print("🔵 Speed 1") # TEST
+            print(f"Speed distance {self.left_screen_distance}")  # TEST
+        elif game_time < 60:
+            self.game_speed = -2
+            self.left_screen_distance = 300
+            print("🔴 Speed 2") # TEST
+            print(f"Speed distance {self.left_screen_distance}")  # TEST
+
+        else:
+            self.game_speed = -3
+            self.left_screen_distance = 400
+            print("🔴 Speed 3") # TEST
+
 
 
 if __name__ == "__main__":
